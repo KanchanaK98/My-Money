@@ -10,10 +10,14 @@ export default function AuthenticatedLayout() {
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: theme.colors.primary,
-        tabBarInactiveTintColor: theme.colors.outline,
+        tabBarInactiveTintColor: theme.colors.onSurfaceVariant,
         tabBarStyle: {
+          backgroundColor: theme.colors.surface,
           borderTopWidth: 1,
-          borderTopColor: theme.colors.outlineVariant,
+          borderTopColor: theme.colors.outline,
+        },
+        tabBarLabelStyle: {
+          color: theme.colors.onSurface,
         },
       }}
     >
@@ -41,6 +45,15 @@ export default function AuthenticatedLayout() {
           title: 'Budget',
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="wallet" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="add-budget"
+        options={{
+          title: 'Add Budget',
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons name="plus-circle" size={size} color={color} />
           ),
         }}
       />

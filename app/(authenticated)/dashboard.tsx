@@ -1,5 +1,5 @@
 import { View, ScrollView, StyleSheet, SafeAreaView } from 'react-native';
-import { Text, Card, Button, useTheme } from 'react-native-paper';
+import { Text, Card, Button, useTheme, ProgressBar } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Link } from 'expo-router';
 import { useEffect, useState, useCallback } from 'react';
@@ -38,10 +38,12 @@ export default function DashboardScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <ScrollView style={styles.container}>
         <View style={styles.header}>
-          <Text variant="headlineMedium">Dashboard</Text>
+          <Text variant="headlineMedium" style={{ color: theme.colors.onSurface }}>
+            Dashboard
+          </Text>
           <Link href="/transactions/add" asChild>
             <Button
               mode="contained"
@@ -53,27 +55,33 @@ export default function DashboardScreen() {
         </View>
 
         <View style={styles.summaryCards}>
-          <Card style={styles.card}>
+          <Card style={[styles.card, { backgroundColor: theme.colors.surface }]}>
             <Card.Content>
-              <Text variant="titleMedium">Total Balance</Text>
-              <Text variant="headlineMedium" style={styles.amount}>
+              <Text variant="titleMedium" style={{ color: theme.colors.onSurface }}>
+                Total Balance
+              </Text>
+              <Text variant="headlineMedium" style={[styles.amount, { color: theme.colors.onSurface }]}>
                 ${summary.totalBalance.toFixed(2)}
               </Text>
             </Card.Content>
           </Card>
 
-          <Card style={styles.card}>
+          <Card style={[styles.card, { backgroundColor: theme.colors.surface }]}>
             <Card.Content>
-              <Text variant="titleMedium">Income</Text>
+              <Text variant="titleMedium" style={{ color: theme.colors.onSurface }}>
+                Income
+              </Text>
               <Text variant="headlineMedium" style={[styles.amount, { color: theme.colors.primary }]}>
                 ${summary.totalIncome.toFixed(2)}
               </Text>
             </Card.Content>
           </Card>
 
-          <Card style={styles.card}>
+          <Card style={[styles.card, { backgroundColor: theme.colors.surface }]}>
             <Card.Content>
-              <Text variant="titleMedium">Expenses</Text>
+              <Text variant="titleMedium" style={{ color: theme.colors.onSurface }}>
+                Expenses
+              </Text>
               <Text variant="headlineMedium" style={[styles.amount, { color: theme.colors.error }]}>
                 ${summary.totalExpense.toFixed(2)}
               </Text>
@@ -82,12 +90,12 @@ export default function DashboardScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text variant="titleLarge" style={styles.sectionTitle}>
+          <Text variant="titleLarge" style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>
             Expense Categories
           </Text>
           <View style={styles.categories}>
             {Object.entries(summary.categories).map(([category, data]) => (
-              <Card key={category} style={styles.categoryCard}>
+              <Card key={category} style={[styles.categoryCard, { backgroundColor: theme.colors.surface }]}>
                 <Card.Content style={styles.categoryContent}>
                   <MaterialCommunityIcons
                     name={getCategoryIcon(category)}
@@ -95,10 +103,21 @@ export default function DashboardScreen() {
                     color={theme.colors.primary}
                   />
                   <View style={styles.categoryInfo}>
-                    <Text variant="titleMedium">{category}</Text>
-                    <Text variant="bodyMedium">${data.amount.toFixed(2)}</Text>
+                    <Text variant="titleMedium" style={{ color: theme.colors.onSurface }}>
+                      {category}
+                    </Text>
+                    <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>
+                      ${data.amount.toFixed(2)}
+                    </Text>
+                    <ProgressBar
+                      progress={data.percentage / 100}
+                      color={theme.colors.primary}
+                      style={styles.progressBar}
+                    />
                   </View>
-                  <Text variant="bodyMedium">{data.percentage.toFixed(1)}%</Text>
+                  <Text variant="bodyMedium" style={[styles.percentage, { color: theme.colors.onSurfaceVariant }]}>
+                    {data.percentage.toFixed(1)}%
+                  </Text>
                 </Card.Content>
               </Card>
             ))}
@@ -126,15 +145,16 @@ const getCategoryIcon = (category: string): keyof typeof MaterialCommunityIcons.
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    padding: 16,
     marginBottom: 16,
   },
   summaryCards: {
+    paddingHorizontal: 16,
     gap: 16,
     marginBottom: 24,
   },
@@ -143,9 +163,10 @@ const styles = StyleSheet.create({
   },
   amount: {
     fontWeight: 'bold',
+    marginVertical: 8,
   },
   section: {
-    marginBottom: 24,
+    padding: 16,
   },
   sectionTitle: {
     marginBottom: 16,
@@ -164,5 +185,14 @@ const styles = StyleSheet.create({
   },
   categoryInfo: {
     flex: 1,
+  },
+  progressBar: {
+    height: 4,
+    borderRadius: 2,
+    marginTop: 4,
+  },
+  percentage: {
+    minWidth: 50,
+    textAlign: 'right',
   },
 }); 

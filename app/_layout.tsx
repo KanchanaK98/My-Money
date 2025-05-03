@@ -1,24 +1,28 @@
 import { Stack } from 'expo-router';
-import { useColorScheme } from 'react-native';
 import { PaperProvider } from 'react-native-paper';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider } from '../contexts/AuthContext';
+import { ThemeProvider } from '../contexts/ThemeContext';
+import { useEffect } from 'react';
+import { setupNotifications } from '../services/notificationService';
+import { checkAndResetMonthlyBudgets } from '../services/monthlyResetService';
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
+  useEffect(() => {
+    setupNotifications();
+    checkAndResetMonthlyBudgets();
+  }, []);
 
   return (
-    <SafeAreaProvider>
-      <PaperProvider>
-        <AuthProvider>
+    <PaperProvider>
+      <AuthProvider>
+        <ThemeProvider>
           <Stack
             screenOptions={{
               headerShown: false,
-              contentStyle: { backgroundColor: '#fff' },
             }}
           />
-        </AuthProvider>
-      </PaperProvider>
-    </SafeAreaProvider>
+        </ThemeProvider>
+      </AuthProvider>
+    </PaperProvider>
   );
 } 

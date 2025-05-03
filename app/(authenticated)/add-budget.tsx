@@ -1,5 +1,5 @@
-import { View, StyleSheet, SafeAreaView, Alert } from 'react-native';
-import { Text, TextInput, Button, useTheme, Menu } from 'react-native-paper';
+import { View, ScrollView, StyleSheet, SafeAreaView, Alert, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { Text, TextInput, Button, useTheme, Snackbar, Menu } from 'react-native-paper';
 import { useState } from 'react';
 import { router } from 'expo-router';
 import { addBudget } from '../../services/budgetService';
@@ -17,117 +17,160 @@ const CATEGORIES = [
 
 export default function AddBudgetScreen() {
   const theme = useTheme();
-  const [category, setCategory] = useState('');
   const [amount, setAmount] = useState('');
+  const [category, setCategory] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [visible, setVisible] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
 
   const handleAddBudget = async () => {
-    if (!category || !amount) {
-      Alert.alert('Error', 'Please fill in all fields');
-      return;
-    }
-
-    const amountNum = parseFloat(amount);
-    if (isNaN(amountNum) || amountNum <= 0) {
-      Alert.alert('Error', 'Please enter a valid amount');
+    if (!amount || !category) {
+      setError('Please fill in all required fields');
+      setVisible(true);
       return;
     }
 
     try {
       setLoading(true);
-      await addBudget(category, amountNum);
-      Alert.alert('Success', 'Budget added successfully', [
-        { text: 'OK', onPress: () => router.back() }
-      ]);
+      await addBudget(parseFloat(amount), category);
+      setAmount('');
+      setCategory('');
+      setError('Budget added successfully!');
+      setVisible(true);
+      setTimeout(() => {
+        router.back();
+      }, 1500);
     } catch (error) {
       console.error('Error adding budget:', error);
-      Alert.alert('Error', 'Failed to add budget');
+      setError('Failed to add budget. Please try again.');
+      setVisible(true);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <Text variant="headlineMedium" style={styles.title}>
-          Add New Budget
-        </Text>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
+        <ScrollView style={styles.container}>
+          <View style={styles.form}>
+            <Text variant="headlineMedium" style={[styles.title, { color: theme.colors.onSurface }]}>
+              Add Budget
+            </Text>
 
-        <View style={styles.form}>
-          <Menu
-            visible={showMenu}
-            onDismiss={() => setShowMenu(false)}
-            anchor={
-              <Button
-                mode="outlined"
-                onPress={() => setShowMenu(true)}
-                style={styles.categoryButton}
-              >
-                {category || 'Select Category'}
-              </Button>
+            <TextInput
+              label="Amount"
+              value={amount}
+              onChangeText={setAmount}
+              keyboardType="decimal-pad"
+              mode="outlined"
+              style={styles.input}
+              placeholder="0.00"
+              theme={{
+                colors: {
+                  primary: theme.colors.primary,
+                  background: theme.colors.surface,
+                  text: theme.colors.onSurface,
+                  placeholder: theme.colors.onSurfaceVariant,
+                },
+              }}
+            />
+
+            <Menu
+              visible={showMenu}
+              onDismiss={() => setShowMenu(false)}
+              anchor={
+                <TextInput
+                  label="Category"
+                  value={category}
+                  mode="outlined"
+                  style={styles.input}
+                  editable={false}
+                  right={
+                    <TextInput.Icon
+                      icon="chevron-down"
+                      onPress={() => setShowMenu(true)}
+                    />
+                  }
+                  theme={{
+                    colors: {
+                      primary: theme.colors.primary,
+                      background: theme.colors.surface,
+                      text: theme.colors.onSurface,
+                      placeholder: theme.colors.onSurfaceVariant,
+                    },
+                  }}
+                />
+              }
+            >
+              {CATEGORIES.map((cat) => (
+                <Menu.Item
+                  key={cat}
+                  onPress={() => {
+                    setCategory(cat);
+                    setShowMenu(false);
+                  }}
+                  title={cat}
+                  titleStyle={{ color: theme.colors.onSurface }}
+                />
+              ))}
+            </Menu>
+
+            <Button
+              mode="contained"
+              onPress={handleAddBudget}
+              style={styles.button}
+              loading={loading}
+              disabled={loading || !amount || !category}
+            >
+              Add Budget
+            </Button>
+          </View>
+        </ScrollView>
+
+        <Snackbar
+          visible={visible}
+          onDismiss={() => setVisible(false)}
+          action={{
+            label: 'Dismiss',
+            onPress: () => setVisible(false),
+          }}
+          style={{ 
+            backgroundColor: theme.dark ? theme.colors.surfaceVariant : theme.colors.surface,
+          }}
+          theme={{
+            colors: {
+              onSurface: theme.dark ? '#FFFFFF' : '#000000',
+              surfaceVariant: theme.dark ? theme.colors.surfaceVariant : theme.colors.surface,
             }
-          >
-            {CATEGORIES.map((cat) => (
-              <Menu.Item
-                key={cat}
-                onPress={() => {
-                  setCategory(cat);
-                  setShowMenu(false);
-                }}
-                title={cat}
-              />
-            ))}
-          </Menu>
-
-          <TextInput
-            label="Amount"
-            value={amount}
-            onChangeText={setAmount}
-            mode="outlined"
-            keyboardType="numeric"
-            style={styles.input}
-          />
-
-          <Button
-            mode="contained"
-            onPress={handleAddBudget}
-            loading={loading}
-            disabled={loading}
-            style={styles.button}
-          >
-            Add Budget
-          </Button>
-        </View>
-      </View>
-    </SafeAreaView>
+          }}
+        >
+          {error}
+        </Snackbar>
+      </SafeAreaView>
+    </TouchableWithoutFeedback>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
   container: {
     flex: 1,
-    backgroundColor: '#fff',
   },
-  content: {
-    flex: 1,
+  form: {
     padding: 16,
   },
   title: {
     marginBottom: 24,
-    textAlign: 'center',
-  },
-  form: {
-    gap: 16,
+    fontWeight: 'bold',
   },
   input: {
-    backgroundColor: '#fff',
-  },
-  categoryButton: {
-    backgroundColor: '#fff',
+    marginBottom: 16,
   },
   button: {
-    marginTop: 16,
+    marginTop: 8,
   },
 }); 

@@ -1,11 +1,12 @@
-import { View, ScrollView, StyleSheet, SafeAreaView, Alert } from 'react-native';
+import { View, ScrollView, StyleSheet, SafeAreaView } from 'react-native';
 import { Text, Card, ProgressBar, useTheme, Button, Portal, Dialog } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useEffect, useState, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { getBudgets, getTotalBudget, addBudget } from '../../services/budgetService';
+import { getBudgets, getBudgetSummary } from '../../services/budgetService';
 import { BudgetWithSpent } from '../../types/budget';
 import { Link } from 'expo-router';
+import { checkBudgetExceeded } from '../../services/notificationService';
 
 export default function BudgetScreen() {
   const theme = useTheme();
@@ -21,26 +22,27 @@ export default function BudgetScreen() {
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
-      const [budgetsData, totalData] = await Promise.all([
-        getBudgets(),
-        getTotalBudget(),
-      ]);
+      const budgetsData = await getBudgets();
       setBudgets(budgetsData);
-      setTotal(totalData);
 
-      // Check for exceeded budgets
-      budgetsData.forEach(budget => {
-        if (budget.percentage >= 100) {
-          Alert.alert(
-            'Budget Exceeded',
-            `You have exceeded your budget for ${budget.category}!`,
-            [{ text: 'OK' }]
-          );
-        }
+      let totalAmount = 0;
+      let totalSpent = 0;
+      budgetsData.forEach((budget: any) => {
+        totalAmount += budget.amount || 0;
+        totalSpent += budget.spent || 0;
       });
+      const remaining = totalAmount - totalSpent;
+      const percentage = totalAmount === 0 ? 0 : (totalSpent / totalAmount) * 100;
+      setTotal({
+        total: totalAmount,
+        spent: totalSpent,
+        remaining,
+        percentage,
+      });
+
+      await checkBudgetExceeded(budgetsData);
     } catch (error) {
       console.error('Error loading budget data:', error);
-      Alert.alert('Error', 'Failed to load budget data');
     } finally {
       setLoading(false);
     }
@@ -58,10 +60,12 @@ export default function BudgetScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.colors.background }]}>
       <ScrollView style={styles.container}>
         <View style={styles.header}>
-          <Text variant="headlineMedium">Budget</Text>
+          <Text variant="headlineMedium" style={{ color: theme.colors.onSurface }}>
+            Budget
+          </Text>
           <Link href="/add-budget" asChild>
             <Button
               mode="contained"
@@ -72,32 +76,32 @@ export default function BudgetScreen() {
           </Link>
         </View>
 
-        <View style={styles.summaryCard}>
-          <Card>
-            <Card.Content>
-              <Text variant="titleMedium">Monthly Budget</Text>
-              <Text variant="headlineMedium" style={styles.amount}>
-                ${total.total.toFixed(2)}
-              </Text>
-              <Text variant="bodyMedium" style={styles.remaining}>
-                ${total.remaining.toFixed(2)} remaining
-              </Text>
-              <ProgressBar
-                progress={total.percentage / 100}
-                color={getProgressColor(total.percentage, theme)}
-                style={styles.progressBar}
-              />
-            </Card.Content>
-          </Card>
-        </View>
+        <Card style={[styles.summaryCard, { backgroundColor: theme.colors.surface }]}>
+          <Card.Content>
+            <Text variant="titleMedium" style={{ color: theme.colors.onSurface }}>
+              Monthly Budget Summary
+            </Text>
+            <Text variant="headlineMedium" style={[styles.amount, { color: theme.colors.onSurface }]}>
+              ${total.total.toFixed(2)}
+            </Text>
+            <Text variant="bodyMedium" style={[styles.remaining, { color: theme.colors.onSurfaceVariant }]}>
+              ${total.remaining.toFixed(2)} remaining
+            </Text>
+            <ProgressBar
+              progress={total.percentage / 100}
+              color={getProgressColor(total.percentage, theme)}
+              style={styles.progressBar}
+            />
+          </Card.Content>
+        </Card>
 
         <View style={styles.section}>
-          <Text variant="titleLarge" style={styles.sectionTitle}>
-            Categories
+          <Text variant="titleLarge" style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>
+            Budget Categories
           </Text>
           <View style={styles.categories}>
             {budgets.map((budget) => (
-              <Card key={budget.id} style={styles.categoryCard}>
+              <Card key={budget.id} style={[styles.categoryCard, { backgroundColor: theme.colors.surface }]}>
                 <Card.Content style={styles.categoryContent}>
                   <MaterialCommunityIcons
                     name={getCategoryIcon(budget.category)}
@@ -105,8 +109,10 @@ export default function BudgetScreen() {
                     color={theme.colors.primary}
                   />
                   <View style={styles.categoryInfo}>
-                    <Text variant="titleMedium">{budget.category}</Text>
-                    <Text variant="bodyMedium">
+                    <Text variant="titleMedium" style={{ color: theme.colors.onSurface }}>
+                      {budget.category}
+                    </Text>
+                    <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>
                       ${budget.spent.toFixed(2)} / ${budget.amount.toFixed(2)}
                     </Text>
                     <ProgressBar
@@ -115,6 +121,9 @@ export default function BudgetScreen() {
                       style={styles.categoryProgress}
                     />
                   </View>
+                  <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>
+                    {budget.percentage.toFixed(1)}%
+                  </Text>
                 </Card.Content>
               </Card>
             ))}
@@ -146,6 +155,9 @@ const getCategoryIcon = (category: string): keyof typeof MaterialCommunityIcons.
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
   container: {
     flex: 1,
   },
@@ -165,7 +177,6 @@ const styles = StyleSheet.create({
     marginVertical: 8,
   },
   remaining: {
-    color: '#666',
     marginBottom: 8,
   },
   progressBar: {
