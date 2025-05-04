@@ -7,7 +7,14 @@ import { TransactionType } from '../../../types/transaction';
 import { supabase } from '../../../lib/supabase';
 import * as ImagePicker from 'expo-image-picker';
 
-const CATEGORIES = [
+const INCOME_CATEGORIES = [
+  'Deposit',
+  'Salary',
+  'Saving',
+  'Others'
+];
+
+const EXPENSE_CATEGORIES = [
   'Food',
   'Transport',
   'Shopping',
@@ -199,7 +206,7 @@ export default function AddTransactionScreen() {
               />
             }
           >
-            {CATEGORIES.map((cat) => (
+            {(type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES).map((cat) => (
               <Menu.Item
                 key={cat}
                 onPress={() => {

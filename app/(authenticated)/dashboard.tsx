@@ -1,7 +1,7 @@
-import { View, ScrollView, StyleSheet, SafeAreaView } from 'react-native';
+import { View, ScrollView, StyleSheet, SafeAreaView, TouchableOpacity } from 'react-native';
 import { Text, Card, Button, useTheme, ProgressBar } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Link } from 'expo-router';
+import { Link, router } from 'expo-router';
 import { useEffect, useState, useCallback } from 'react';
 import { getDashboardSummary } from '../../services/transactionService';
 import { useFocusEffect } from '@react-navigation/native';
@@ -95,31 +95,36 @@ export default function DashboardScreen() {
           </Text>
           <View style={styles.categories}>
             {Object.entries(summary.categories).map(([category, data]) => (
-              <Card key={category} style={[styles.categoryCard, { backgroundColor: theme.colors.surface }]}>
-                <Card.Content style={styles.categoryContent}>
-                  <MaterialCommunityIcons
-                    name={getCategoryIcon(category)}
-                    size={24}
-                    color={theme.colors.primary}
-                  />
-                  <View style={styles.categoryInfo}>
-                    <Text variant="titleMedium" style={{ color: theme.colors.onSurface }}>
-                      {category}
-                    </Text>
-                    <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>
-                      ${data.amount.toFixed(2)}
-                    </Text>
-                    <ProgressBar
-                      progress={data.percentage / 100}
+              <TouchableOpacity
+                key={category}
+                onPress={() => router.push(`/category-details?category=${encodeURIComponent(category)}`)}
+              >
+                <Card style={[styles.categoryCard, { backgroundColor: theme.colors.surface }]}>
+                  <Card.Content style={styles.categoryContent}>
+                    <MaterialCommunityIcons
+                      name={getCategoryIcon(category)}
+                      size={24}
                       color={theme.colors.primary}
-                      style={styles.progressBar}
                     />
-                  </View>
-                  <Text variant="bodyMedium" style={[styles.percentage, { color: theme.colors.onSurfaceVariant }]}>
-                    {data.percentage.toFixed(1)}%
-                  </Text>
-                </Card.Content>
-              </Card>
+                    <View style={styles.categoryInfo}>
+                      <Text variant="titleMedium" style={{ color: theme.colors.onSurface }}>
+                        {category}
+                      </Text>
+                      <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>
+                        ${data.amount.toFixed(2)}
+                      </Text>
+                      <ProgressBar
+                        progress={data.percentage / 100}
+                        color={theme.colors.primary}
+                        style={styles.progressBar}
+                      />
+                    </View>
+                    <Text variant="bodyMedium" style={[styles.percentage, { color: theme.colors.onSurfaceVariant }]}>
+                      {data.percentage.toFixed(1)}%
+                    </Text>
+                  </Card.Content>
+                </Card>
+              </TouchableOpacity>
             ))}
           </View>
         </View>

@@ -49,21 +49,24 @@ export default function AuthenticatedLayout() {
         }}
       />
       <Tabs.Screen
-        name="add-budget"
-        options={{
-          title: 'Add Budget',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="plus-circle" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="settings"
         options={{
           title: 'Settings',
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="cog" size={size} color={color} />
           ),
+        }}
+      />
+      <Tabs.Screen
+        name="add-budget"
+        options={{
+          href: null, // This removes it from the tab bar
+        }}
+      />
+      <Tabs.Screen
+        name="category-details/index"
+        options={{
+          href: null, // This removes it from the tab bar
         }}
       />
     </Tabs>

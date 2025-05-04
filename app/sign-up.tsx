@@ -1,4 +1,4 @@
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { Button, Text, TextInput, useTheme } from 'react-native-paper';
 import { Link } from 'expo-router';
 import { useState } from 'react';
@@ -26,53 +26,55 @@ export default function SignUpScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text variant="headlineMedium" style={styles.title}>
-        Create Account
-      </Text>
-      <View style={styles.form}>
-        <TextInput
-          label="Full Name"
-          value={fullName}
-          onChangeText={setFullName}
-          mode="outlined"
-          style={styles.input}
-        />
-        <TextInput
-          label="Email"
-          value={email}
-          onChangeText={setEmail}
-          mode="outlined"
-          keyboardType="email-address"
-          autoCapitalize="none"
-          style={styles.input}
-        />
-        <TextInput
-          label="Password"
-          value={password}
-          onChangeText={setPassword}
-          mode="outlined"
-          secureTextEntry
-          style={styles.input}
-        />
-        {error ? <Text style={styles.error}>{error}</Text> : null}
-        <Button
-          mode="contained"
-          onPress={handleSignUp}
-          loading={loading}
-          disabled={loading}
-          style={styles.button}
-        >
-          Sign Up
-        </Button>
-        <View style={styles.footer}>
-          <Text>Already have an account? </Text>
-          <Link href="/sign-in" asChild>
-            <Text style={styles.link}>Sign In</Text>
-          </Link>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <View style={styles.container}>
+        <Text variant="headlineMedium" style={styles.title}>
+          Create Account
+        </Text>
+        <View style={styles.form}>
+          <TextInput
+            label="Full Name"
+            value={fullName}
+            onChangeText={setFullName}
+            mode="outlined"
+            style={styles.input}
+          />
+          <TextInput
+            label="Email"
+            value={email}
+            onChangeText={setEmail}
+            mode="outlined"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            style={styles.input}
+          />
+          <TextInput
+            label="Password"
+            value={password}
+            onChangeText={setPassword}
+            mode="outlined"
+            secureTextEntry
+            style={styles.input}
+          />
+          {error ? <Text style={styles.error}>{error}</Text> : null}
+          <Button
+            mode="contained"
+            onPress={handleSignUp}
+            loading={loading}
+            disabled={loading}
+            style={styles.button}
+          >
+            Sign Up
+          </Button>
+          <View style={styles.footer}>
+            <Text>Already have an account? </Text>
+            <Link href="/sign-in" asChild>
+              <Text style={styles.link}>Sign In</Text>
+            </Link>
+          </View>
         </View>
       </View>
-    </View>
+    </TouchableWithoutFeedback>
   );
 }
 

@@ -1,4 +1,4 @@
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { Button, Text, TextInput, useTheme, Switch } from 'react-native-paper';
 import { Link } from 'expo-router';
 import { useState, useEffect } from 'react';
@@ -39,54 +39,56 @@ export default function SignInScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text variant="headlineMedium" style={styles.title}>
-        Welcome Back
-      </Text>
-      <View style={styles.form}>
-        <TextInput
-          label="Email"
-          value={email}
-          onChangeText={setEmail}
-          mode="outlined"
-          keyboardType="email-address"
-          autoCapitalize="none"
-          style={styles.input}
-        />
-        <TextInput
-          label="Password"
-          value={password}
-          onChangeText={setPassword}
-          mode="outlined"
-          secureTextEntry
-          style={styles.input}
-        />
-        <View style={styles.rememberMe}>
-          <Text>Remember me</Text>
-          <Switch
-            value={rememberMe}
-            onValueChange={setRememberMe}
-            color={theme.colors.primary}
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <View style={styles.container}>
+        <Text variant="headlineMedium" style={styles.title}>
+          Welcome Back
+        </Text>
+        <View style={styles.form}>
+          <TextInput
+            label="Email"
+            value={email}
+            onChangeText={setEmail}
+            mode="outlined"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            style={styles.input}
           />
-        </View>
-        {error ? <Text style={styles.error}>{error}</Text> : null}
-        <Button
-          mode="contained"
-          onPress={handleSignIn}
-          loading={loading}
-          disabled={loading}
-          style={styles.button}
-        >
-          Sign In
-        </Button>
-        <View style={styles.footer}>
-          <Text>Don't have an account? </Text>
-          <Link href="/sign-up" asChild>
-            <Text style={styles.link}>Sign Up</Text>
-          </Link>
+          <TextInput
+            label="Password"
+            value={password}
+            onChangeText={setPassword}
+            mode="outlined"
+            secureTextEntry
+            style={styles.input}
+          />
+          <View style={styles.rememberMe}>
+            <Text>Remember me</Text>
+            <Switch
+              value={rememberMe}
+              onValueChange={setRememberMe}
+              color={theme.colors.primary}
+            />
+          </View>
+          {error ? <Text style={styles.error}>{error}</Text> : null}
+          <Button
+            mode="contained"
+            onPress={handleSignIn}
+            loading={loading}
+            disabled={loading}
+            style={styles.button}
+          >
+            Sign In
+          </Button>
+          <View style={styles.footer}>
+            <Text>Don't have an account? </Text>
+            <Link href="/sign-up" asChild>
+              <Text style={styles.link}>Sign Up</Text>
+            </Link>
+          </View>
         </View>
       </View>
-    </View>
+    </TouchableWithoutFeedback>
   );
 }
 
