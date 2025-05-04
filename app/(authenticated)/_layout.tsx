@@ -49,6 +49,15 @@ export default function AuthenticatedLayout() {
         }}
       />
       <Tabs.Screen
+        name="bills"
+        options={{
+          title: 'Bills',
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons name="receipt" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="settings"
         options={{
           title: 'Settings',
@@ -65,6 +74,12 @@ export default function AuthenticatedLayout() {
       />
       <Tabs.Screen
         name="category-details/index"
+        options={{
+          href: null, // This removes it from the tab bar
+        }}
+      />
+      <Tabs.Screen
+        name="add-bill"
         options={{
           href: null, // This removes it from the tab bar
         }}
