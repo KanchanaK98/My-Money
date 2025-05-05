@@ -1,9 +1,10 @@
-import { View, ScrollView, StyleSheet, SafeAreaView, Image, Alert, TouchableOpacity, Modal as RNModal, Platform } from 'react-native';
+import { View, ScrollView, StyleSheet, SafeAreaView, Image, Alert, TouchableOpacity, Modal as RNModal, Platform, KeyboardAvoidingView } from 'react-native';
 import { Text, Card, useTheme, IconButton, Portal, Modal, Button, TextInput, Menu, Divider } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useLocalSearchParams, router } from 'expo-router';
 import { supabase } from '../../../lib/supabase';
+import { useFocusEffect } from '@react-navigation/native';
 
 interface Transaction {
   id: string;
@@ -40,15 +41,7 @@ export default function CategoryDetailsScreen() {
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadTransactions();
-  }, [category]);
-
-  useEffect(() => {
-    applyFiltersAndSort();
-  }, [transactions, filterType, sortType, startDate, endDate, minAmount, maxAmount]);
-
-  const loadTransactions = async () => {
+  const loadTransactions = useCallback(async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('No authenticated user');
@@ -69,7 +62,22 @@ export default function CategoryDetailsScreen() {
     } catch (error) {
       console.error('Error loading transactions:', error);
     }
-  };
+  }, [category]);
+
+  useEffect(() => {
+    loadTransactions();
+  }, [loadTransactions]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadTransactions();
+      return () => {};
+    }, [loadTransactions])
+  );
+
+  useEffect(() => {
+    applyFiltersAndSort();
+  }, [transactions, filterType, sortType, startDate, endDate, minAmount, maxAmount]);
 
   const applyFiltersAndSort = () => {
     let filtered = [...transactions];
@@ -380,44 +388,50 @@ export default function CategoryDetailsScreen() {
           onDismiss={() => setEditModalVisible(false)}
           contentContainerStyle={[styles.modal, { backgroundColor: theme.colors.background }]}
         >
-          <Text variant="headlineSmall" style={[styles.modalTitle, { color: theme.colors.onSurface }]}>
-            Edit Transaction
-          </Text>
-          <TextInput
-            label="Amount"
-            value={editAmount}
-            onChangeText={setEditAmount}
-            keyboardType="decimal-pad"
-            mode="outlined"
-            style={styles.modalInput}
-          />
-          <TextInput
-            label="Description"
-            value={editDescription}
-            onChangeText={setEditDescription}
-            mode="outlined"
-            multiline
-            numberOfLines={3}
-            style={styles.modalInput}
-          />
-          <View style={styles.modalButtons}>
-            <Button
+          <KeyboardAvoidingView 
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={styles.modalContent}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? -100 : 0}
+          >
+            <Text variant="headlineSmall" style={[styles.modalTitle, { color: theme.colors.onSurface }]}>
+              Edit Transaction
+            </Text>
+            <TextInput
+              label="Amount"
+              value={editAmount}
+              onChangeText={setEditAmount}
+              keyboardType="decimal-pad"
               mode="outlined"
-              onPress={() => setEditModalVisible(false)}
-              style={styles.modalButton}
-            >
-              Cancel
-            </Button>
-            <Button
-              mode="contained"
-              onPress={handleSaveEdit}
-              loading={loading}
-              disabled={loading || !editAmount}
-              style={styles.modalButton}
-            >
-              Save
-            </Button>
-          </View>
+              style={styles.modalInput}
+            />
+            <TextInput
+              label="Description"
+              value={editDescription}
+              onChangeText={setEditDescription}
+              mode="outlined"
+              multiline
+              numberOfLines={3}
+              style={styles.modalInput}
+            />
+            <View style={styles.modalButtons}>
+              <Button
+                mode="outlined"
+                onPress={() => setEditModalVisible(false)}
+                style={styles.modalButton}
+              >
+                Cancel
+              </Button>
+              <Button
+                mode="contained"
+                onPress={handleSaveEdit}
+                loading={loading}
+                disabled={loading || !editAmount}
+                style={styles.modalButton}
+              >
+                Save
+              </Button>
+            </View>
+          </KeyboardAvoidingView>
         </Modal>
 
         <RNModal
@@ -603,7 +617,11 @@ const styles = StyleSheet.create({
   modal: {
     padding: 20,
     margin: 20,
+    marginTop: -100,
     borderRadius: 8,
+  },
+  modalContent: {
+    width: '100%',
   },
   modalTitle: {
     marginBottom: 16,
