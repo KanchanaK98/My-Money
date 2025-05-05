@@ -33,10 +33,13 @@ export default function AuthenticatedLayout() {
       <Tabs.Screen
         name="transactions/add"
         options={{
-          title: 'Transactions',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="swap-horizontal" size={size} color={color} />
-          ),
+          href: null, // This removes it from the tab bar
+        }}
+      />
+      <Tabs.Screen
+        name="transaction-summary"
+        options={{
+          href: null, // This removes it from the tab bar
         }}
       />
       <Tabs.Screen
